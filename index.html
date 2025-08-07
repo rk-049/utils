@@ -2,23 +2,26 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Elegant Business Utility Calculator</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: #f4f7f9;
-      padding: 30px;
-      max-width: 700px;
+      padding: 15px;
+      max-width: 100%;
       margin: auto;
       color: #333;
     }
     h2 {
       text-align: center;
       color: #2c3e50;
+      font-size: 1.5rem;
     }
     label {
       margin-top: 12px;
       display: block;
+      font-size: 1rem;
     }
     input, select {
       width: 100%;
@@ -26,6 +29,8 @@
       margin-top: 5px;
       border: 1px solid #ccc;
       border-radius: 6px;
+      font-size: 1rem;
+      box-sizing: border-box;
     }
     .section {
       background: white;
@@ -36,7 +41,7 @@
     }
     .result {
       margin-top: 20px;
-      font-size: 18px;
+      font-size: 1.2rem;
       font-weight: bold;
       color: #27ae60;
       border-top: 1px dashed #ccc;
@@ -44,12 +49,14 @@
     }
     button {
       margin-top: 15px;
-      padding: 10px 15px;
+      padding: 12px 15px;
       border: none;
       background: #3498db;
       color: white;
       border-radius: 6px;
       cursor: pointer;
+      font-size: 1rem;
+      width: 100%;
     }
     button:hover {
       background: #2980b9;
@@ -59,14 +66,21 @@
       padding: 10px;
       margin-top: 15px;
       border-radius: 6px;
-      font-size: 14px;
+      font-size: 0.95rem;
+      overflow-x: auto;
     }
     .flex-group {
       display: flex;
       gap: 10px;
+      flex-wrap: wrap;
     }
     .flex-group > div {
-      flex: 1;
+      flex: 1 1 100%;
+    }
+    @media (min-width: 576px) {
+      .flex-group > div {
+        flex: 1;
+      }
     }
   </style>
 </head>
@@ -194,8 +208,6 @@
         if (isNaN(qty)) return resultArea.innerText = "Enter valid quantity";
 
         let baseQty = qty;
-
-        // Convert to base unit
         if (unit === "kg" && quantityUnit === "gm") baseQty = qty / 1000;
         if (unit === "kg" && quantityUnit === "tonne") baseQty = qty * 1000;
         if (unit === "litre" && quantityUnit === "ml") baseQty = qty / 1000;
