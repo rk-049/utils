@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Elegant Business Utility Calculator</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f4f7f9;
+      padding: 30px;
+      max-width: 700px;
+      margin: auto;
+      color: #333;
+    }
+    h2 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    label {
+      margin-top: 12px;
+      display: block;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    .section {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .result {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #27ae60;
+      border-top: 1px dashed #ccc;
+      padding-top: 15px;
+    }
+    button {
+      margin-top: 15px;
+      padding: 10px 15px;
+      border: none;
+      background: #3498db;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #2980b9;
+    }
+    .calc-details {
+      background: #ecf0f1;
+      padding: 10px;
+      margin-top: 15px;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    .flex-group {
+      display: flex;
+      gap: 10px;
+    }
+    .flex-group > div {
+      flex: 1;
+    }
+  </style>
+</head>
+<body>
+  <h2>🧮 Elegant Utility Calculator</h2>
+
+  <div class="section">
+    <h3>Business Setup</h3>
+    <label>Unit Name:
+      <select id="unitName" onchange="toggleSubunitField()">
+        <option value="kg">Kilogram (kg)</option>
+        <option value="litre">Litre</option>
+        <option value="strip">Strip (Medical)</option>
+        <option value="piece">Piece</option>
+      </select>
+    </label>
+    <label>Base Price per Unit (₹): <input type="number" id="unitPrice" /></label>
+    <label id="subunitWrapper" style="display: none;">
+      Tablets per Strip: <input type="number" id="subunitCount" value="10" />
+    </label>
+    <button onclick="saveSettings()">💾 Save Settings</button>
+  </div>
+
+  <div class="section">
+    <h3>Calculation Mode</h3>
+    <label><input type="radio" name="mode" value="quantityToPrice" checked onchange="toggleMode()" /> Quantity ➝ Price</label>
+    <label><input type="radio" name="mode" value="priceToQuantity" onchange="toggleMode()" /> Price ➝ Quantity</label>
+
+    <div id="quantityToPriceInput">
+      <div class="flex-group">
+        <div>
+          <label>Enter Quantity: <input type="number" id="quantityInput" /></label>
+        </div>
+        <div>
+          <label>Unit:
+            <select id="quantityUnit"></select>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div id="priceToQuantityInput" style="display: none;">
+      <label>Enter Price (₹): <input type="number" id="priceInput" /></label>
+    </div>
+
+    <label>Discount (%): <input type="number" id="discountInput" value="0" /></label>
+
+    <button onclick="calculate()">✅ Calculate</button>
+
+    <div class="result" id="resultArea"></div>
+    <div class="calc-details" id="detailsArea"></div>
+  </div>
+
+  <script>
+    const unitNameInput = document.getElementById("unitName");
+    const unitPriceInput = document.getElementById("unitPrice");
+    const subunitInput = document.getElementById("subunitCount");
+    const subunitWrapper = document.getElementById("subunitWrapper");
+    const quantityUnitSelect = document.getElementById("quantityUnit");
+    const resultArea = document.getElementById("resultArea");
+    const detailsArea = document.getElementById("detailsArea");
+
+    const unitConversions = {
+      kg: ["kg", "gm", "tonne"],
+      litre: ["litre", "ml"],
+      strip: ["strip", "tablet"],
+      piece: ["piece"]
+    };
+
+    function toggleSubunitField() {
+      const unit = unitNameInput.value;
+      subunitWrapper.style.display = unit === "strip" ? "block" : "none";
+      populateQuantityUnits(unit);
+    }
+
+    function populateQuantityUnits(unit) {
+      quantityUnitSelect.innerHTML = "";
+      unitConversions[unit].forEach(u => {
+        const opt = document.createElement("option");
+        opt.value = u;
+        opt.innerText = u.charAt(0).toUpperCase() + u.slice(1);
+        quantityUnitSelect.appendChild(opt);
+      });
+    }
+
+    window.onload = function () {
+      const savedUnit = localStorage.getItem("unitName") || "kg";
+      const savedPrice = localStorage.getItem("unitPrice") || 300;
+      const savedSubunit = localStorage.getItem("subunitCount") || 10;
+
+      unitNameInput.value = savedUnit;
+      unitPriceInput.value = savedPrice;
+      subunitInput.value = savedSubunit;
+
+      toggleSubunitField();
+    };
+
+    function saveSettings() {
+      localStorage.setItem("unitName", unitNameInput.value);
+      localStorage.setItem("unitPrice", unitPriceInput.value);
+      localStorage.setItem("subunitCount", subunitInput.value);
+      alert("Settings saved!");
+    }
+
+    function toggleMode() {
+      const mode = document.querySelector("input[name='mode']:checked").value;
+      document.getElementById("quantityToPriceInput").style.display = mode === "quantityToPrice" ? "block" : "none";
+      document.getElementById("priceToQuantityInput").style.display = mode === "priceToQuantity" ? "block" : "none";
+      resultArea.innerText = "";
+      detailsArea.innerText = "";
+    }
+
+    function calculate() {
+      const unit = unitNameInput.value;
+      const unitPrice = parseFloat(unitPriceInput.value);
+      const subunitCount = parseInt(subunitInput.value);
+      const discount = parseFloat(document.getElementById("discountInput").value || 0);
+      const mode = document.querySelector("input[name='mode']:checked").value;
+      const quantityUnit = quantityUnitSelect.value;
+
+      let result = "", detail = "";
+
+      if (mode === "quantityToPrice") {
+        const qty = parseFloat(document.getElementById("quantityInput").value);
+        if (isNaN(qty)) return resultArea.innerText = "Enter valid quantity";
+
+        let baseQty = qty;
+
+        // Convert to base unit
+        if (unit === "kg" && quantityUnit === "gm") baseQty = qty / 1000;
+        if (unit === "kg" && quantityUnit === "tonne") baseQty = qty * 1000;
+        if (unit === "litre" && quantityUnit === "ml") baseQty = qty / 1000;
+        if (unit === "strip" && quantityUnit === "tablet") baseQty = qty / subunitCount;
+
+        let price = baseQty * unitPrice;
+        const discountAmt = price * discount / 100;
+        const finalPrice = price - discountAmt;
+
+        result = `Final Price: ₹${finalPrice.toFixed(2)}`;
+        detail = `Calculation: ${baseQty.toFixed(4)} ${unit} × ₹${unitPrice} = ₹${price.toFixed(2)}<br/>Discount: ₹${discountAmt.toFixed(2)} (${discount}%)`;
+      } else {
+        const priceInput = parseFloat(document.getElementById("priceInput").value);
+        if (isNaN(priceInput)) return resultArea.innerText = "Enter valid price";
+
+        const basePrice = priceInput / (1 - discount / 100);
+        let qty = basePrice / unitPrice;
+        let displayQty = qty;
+
+        if (unit === "kg" && quantityUnit === "gm") displayQty = qty * 1000;
+        if (unit === "kg" && quantityUnit === "tonne") displayQty = qty / 1000;
+        if (unit === "litre" && quantityUnit === "ml") displayQty = qty * 1000;
+        if (unit === "strip" && quantityUnit === "tablet") displayQty = qty * subunitCount;
+
+        result = `Quantity: ${displayQty.toFixed(4)} ${quantityUnit}`;
+        detail = `Calculation: ₹${priceInput} ➝ Effective Price: ₹${basePrice.toFixed(2)}<br/>Qty = ₹${basePrice.toFixed(2)} / ₹${unitPrice} = ${qty.toFixed(4)} ${unit}`;
+      }
+
+      resultArea.innerHTML = result;
+      detailsArea.innerHTML = detail;
+    }
+  </script>
+</body>
+</html>
